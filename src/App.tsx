@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import {
-  Archive, ArrowLeft, Check, CheckCheck, ChevronDown, CircleHelp, EllipsisVertical,
+  Archive, ArrowLeft, Check, CheckCheck, ChevronDown, CircleHelp,
   Filter, Headphones, Image, MessageCircle, MoreVertical, Paperclip, Plus, Search,
   Send, Settings, Smile, Users, Video, Phone,
 } from 'lucide-react'
