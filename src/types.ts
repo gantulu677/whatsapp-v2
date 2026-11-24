@@ -1,10 +1,18 @@
-export type MessageStatus = 'sent' | 'delivered' | 'read'
+export type MessageStatus =
+  | 'pending'
+  | 'sent'
+  | 'delivered'
+  | 'read'
+  | 'failed'
+  | 'received'
+  | 'unknown'
 
 export interface WhatsAppAccount {
   id: string
   name: string
   phoneNumber: string
   phoneNumberId: string
+  isActive: boolean
   color: string
 }
 
@@ -14,6 +22,7 @@ export interface ChatMessage {
   timestamp: string
   direction: 'in' | 'out'
   status?: MessageStatus
+  attachments?: string[]
 }
 
 export interface Conversation {
@@ -26,6 +35,5 @@ export interface Conversation {
   lastMessage: string
   lastMessageAt: string
   unread: number
-  online?: boolean
   messages: ChatMessage[]
 }
