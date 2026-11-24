@@ -4,7 +4,7 @@ import {
   Headphones, Image, MessageCircle, MoreVertical, Paperclip, Plus,
   RefreshCw, Search, Settings, Smile, Users, Video, Phone,
 } from 'lucide-react'
-import { fetchWhatsAppInbox } from './lib/whatsapp'
+import { fetchWhatsAppInbox, subscribeToWhatsAppChanges } from './lib/whatsapp'
 import type { Conversation, WhatsAppAccount } from './types'
 
 function App() {
@@ -18,8 +18,8 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
 
-  async function loadInbox() {
-    setLoading(true)
+  async function loadInbox(silent = false) {
+    if (!silent) setLoading(true)
     setLoadError('')
     try {
       const result = await fetchWhatsAppInbox()
@@ -38,12 +38,27 @@ function App() {
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Gagal memuat data Supabase.')
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }
 
   useEffect(() => {
     void loadInbox()
+  }, [])
+
+  useEffect(() => {
+    let refreshTimer: ReturnType<typeof setTimeout> | undefined
+    const unsubscribe = subscribeToWhatsAppChanges(() => {
+      if (refreshTimer) clearTimeout(refreshTimer)
+      refreshTimer = setTimeout(() => {
+        void loadInbox(true)
+      }, 250)
+    })
+
+    return () => {
+      if (refreshTimer) clearTimeout(refreshTimer)
+      unsubscribe()
+    }
   }, [])
 
   const activeAccount = accounts.find((account) => account.id === activeAccountId) ?? null
