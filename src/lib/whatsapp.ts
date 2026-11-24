@@ -179,3 +179,28 @@ export async function fetchWhatsAppInbox(): Promise<{
 
   return { accounts, conversations }
 }
+
+
+/**
+ * Subscribe to row changes across all WhatsApp tables.
+ * The callback refreshes the normalized inbox so foreign-key relationships
+ * and related status/media rows stay consistent in the UI.
+ */
+export function subscribeToWhatsAppChanges(onChange: () => void) {
+  const channel = supabase
+    .channel('whatsapp-inbox-realtime')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_settings' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_contacts' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_messages' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_message_statuses' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_message_media' }, onChange)
+    .subscribe((status) => {
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        console.error('WhatsApp Realtime subscription:', status)
+      }
+    })
+
+  return () => {
+    void supabase.removeChannel(channel)
+  }
+}
