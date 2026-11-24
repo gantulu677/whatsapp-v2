@@ -9,6 +9,7 @@ Frontend inbox WhatsApp Business berbasis React, Vite, TypeScript, dan Tailwind 
 - Riwayat pesan masuk dan keluar dari Supabase.
 - Status pesan dari `whatsapp_message_statuses`.
 - Metadata lampiran dari `whatsapp_message_media`.
+- Pembaruan inbox otomatis melalui Supabase Realtime pada kelima tabel.
 - Pencarian kontak dan isi pesan.
 - Tampilan responsif untuk desktop dan mobile.
 
@@ -44,7 +45,9 @@ Project Supabase: `bkyqbbigfvfaobblxziu`.
 | `whatsapp_message_statuses` | Status pengiriman pesan |
 | `whatsapp_message_media` | Metadata lampiran pesan |
 
-Pengambilan data dilakukan di `src/lib/whatsapp.ts`. Aplikasi tidak lagi menggunakan `src/data/mockData.ts` sebagai sumber inbox.
+Pengambilan data dilakukan di `src/lib/whatsapp.ts`. Aplikasi berlangganan ke event `postgres_changes` (INSERT, UPDATE, DELETE) pada kelima tabel melalui satu channel. Ketika event diterima, inbox dimuat ulang agar relasi kontak, pesan, status, dan media tetap konsisten. Event yang datang berdekatan dikelompokkan dengan debounce singkat. Aplikasi tidak lagi menggunakan `src/data/mockData.ts` sebagai sumber inbox.
+
+Kelima tabel harus terdaftar pada publication `supabase_realtime`. Kelima tabel pada proyek saat ini sudah terdaftar dan diverifikasi.
 
 ### Kebijakan akses database
 
