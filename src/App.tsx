@@ -2,7 +2,7 @@ import { useMemo, useState, type FormEvent } from 'react'
 import {
   Archive, ArrowLeft, Check, CheckCheck, ChevronDown, CircleHelp, EllipsisVertical,
   Filter, Headphones, Image, MessageCircle, MoreVertical, Paperclip, Plus, Search,
-  Send, Settings, Smile, Users, Video, Phone, X,
+  Send, Settings, Smile, Users, Video, Phone,
 } from 'lucide-react'
 import { mockAccounts, mockConversations } from './data/mockData'
 import type { Conversation } from './types'
