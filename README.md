@@ -45,7 +45,9 @@ Project Supabase: `bkyqbbigfvfaobblxziu`.
 | `whatsapp_message_statuses` | Status pengiriman pesan |
 | `whatsapp_message_media` | Metadata lampiran pesan |
 
-Pengambilan data dilakukan di `src/lib/whatsapp.ts`. Aplikasi berlangganan ke event `postgres_changes` (INSERT, UPDATE, DELETE) pada kelima tabel melalui satu channel. Ketika event diterima, inbox dimuat ulang agar relasi kontak, pesan, status, dan media tetap konsisten. Event yang datang berdekatan dikelompokkan dengan debounce singkat. Aplikasi tidak lagi menggunakan `src/data/mockData.ts` sebagai sumber inbox.
+Pengambilan dan pemetaan data dilakukan di `src/lib/whatsapp.ts`. Aplikasi mengambil data kelima tabel melalui Supabase client, menghubungkan kontak dengan akun dan pesan melalui foreign key, lalu menormalkannya menjadi tipe UI `WhatsAppAccount` dan `Conversation`. Aplikasi berlangganan ke event `postgres_changes` pada kelima tabel melalui satu channel. Ketika event diterima, inbox dimuat ulang agar relasi kontak, pesan, status, dan media tetap konsisten.
+
+**Supabase adalah satu-satunya sumber data inbox.** Data akun, kontak, percakapan, dan pesan mock/demo tidak disertakan dalam source aplikasi. Jika tabel tidak memiliki data atau query gagal, UI menampilkan keadaan kosong atau pesan error; aplikasi tidak mengganti data Supabase dengan data contoh.
 
 Kelima tabel harus terdaftar pada publication `supabase_realtime`. Kelima tabel pada proyek saat ini sudah terdaftar dan diverifikasi.
 
@@ -65,8 +67,6 @@ Kelima tabel tersebut memiliki RLS aktif dan policy public access yang memberika
 src/
   App.tsx
   types.ts
-  data/
-    mockData.ts       # data demo lama; tidak digunakan oleh inbox aktif
   lib/
     supabase.ts       # inisialisasi Supabase client
     whatsapp.ts       # query dan pemetaan lima tabel Supabase
