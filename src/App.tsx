@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   Archive, ArrowLeft, CheckCheck, ChevronDown, CircleHelp, Filter,
   Headphones, Image, MessageCircle, MoreVertical, Paperclip, Plus,
-  RefreshCw, Search, Settings, Smile, Users, Video, Phone,
+  RefreshCw, Search, Settings, Smile, Users, Video, Phone, Send,
 } from 'lucide-react'
-import { fetchWhatsAppInbox, subscribeToWhatsAppChanges } from './lib/whatsapp'
+import { fetchWhatsAppInbox, sendWhatsAppText, subscribeToWhatsAppChanges } from './lib/whatsapp'
 import type { Conversation, WhatsAppAccount } from './types'
 
 function App() {
@@ -17,6 +17,9 @@ function App() {
   const [mobileChatOpen, setMobileChatOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
+  const [draft, setDraft] = useState('')
+  const [sending, setSending] = useState(false)
+  const [sendFeedback, setSendFeedback] = useState('')
 
   async function loadInbox(silent = false) {
     if (!silent) setLoading(true)
@@ -82,7 +85,34 @@ function App() {
 
   function selectChat(chat: Conversation) {
     setActiveChatId(chat.id)
+    setDraft('')
+    setSendFeedback('')
     setMobileChatOpen(true)
+  }
+
+  async function handleSendMessage(event: { preventDefault: () => void }) {
+    event.preventDefault()
+    const message = draft.trim()
+    if (!message || !activeAccount || !activeChat || sending) return
+
+    setSending(true)
+    setSendFeedback('')
+    try {
+      const result = await sendWhatsAppText({
+        phoneNumberId: activeAccount.phoneNumberId,
+        to: activeChat.phone,
+        message,
+      })
+      setDraft('')
+      setSendFeedback(result.delivery_unknown
+        ? 'Permintaan diterima WhatsApp, status pengiriman masih menunggu konfirmasi.'
+        : 'Pesan berhasil dikirim.')
+      await loadInbox(true)
+    } catch (error) {
+      setSendFeedback(error instanceof Error ? error.message : 'Gagal mengirim pesan.')
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -194,13 +224,30 @@ function App() {
                 ))}
               </div>
 
-              <form className="composer" onSubmit={(event) => event.preventDefault()}>
+              <form className="composer" onSubmit={handleSendMessage}>
                 <button type="button" className="icon-button composer-tool" aria-label="Emoji" disabled><Smile size={22} /></button>
                 <button type="button" className="icon-button composer-tool attach-button" aria-label="Lampiran" disabled><Paperclip size={21} /></button>
-                <input disabled placeholder="Pengiriman pesan belum diaktifkan" aria-label="Ketik pesan" />
-                <button type="button" className="icon-button composer-tool" aria-label="Kirim gambar" disabled><Image size={21} /></button>
+                <input
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                  placeholder="Ketik pesan teks..."
+                  aria-label="Ketik pesan"
+                  maxLength={4096}
+                  disabled={sending || !activeAccount?.isActive}
+                />
+                <button
+                  type="submit"
+                  className="send-button"
+                  aria-label="Kirim pesan"
+                  disabled={sending || !draft.trim() || !activeAccount?.isActive}
+                  title="Kirim pesan teks"
+                >
+                  <Send size={18} />
+                </button>
               </form>
-              <div className="composer-note">Mode baca aktif. Pengiriman pesan memerlukan endpoint backend yang aman dan belum dihubungkan.</div>
+              <div className="composer-note" role="status">
+                {sendFeedback || 'Pesan teks hanya dapat dikirim dalam 24 jam setelah pesan terakhir dari pelanggan.'}
+              </div>
             </>
           ) : (
             <div className="welcome-panel">
