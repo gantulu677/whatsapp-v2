@@ -204,3 +204,42 @@ export function subscribeToWhatsAppChanges(onChange: () => void) {
     void supabase.removeChannel(channel)
   }
 }
+
+
+export type SendWhatsAppTextResult = {
+  success: boolean
+  delivery_unknown?: boolean
+  saved_message?: { id: string; message_id?: string | null; status: string }
+}
+
+export async function sendWhatsAppText(input: {
+  phoneNumberId: string
+  to: string
+  message: string
+}): Promise<SendWhatsAppTextResult> {
+  const { data, error } = await supabase.functions.invoke('whatsapp-send-message', {
+    body: {
+      phone_number_id: input.phoneNumberId,
+      to: input.to,
+      message: input.message,
+      client_request_id: crypto.randomUUID(),
+    },
+  })
+
+  if (error) {
+    const context = (error as { context?: Response }).context
+    if (context) {
+      const details = await context.clone().json().catch(() => null) as { error?: string; details?: string } | null
+      if (details?.error) {
+        throw new Error(details.details ? `${details.error}: ${details.details}` : details.error)
+      }
+    }
+    throw new Error(error.message)
+  }
+
+  if (!data?.success) {
+    throw new Error(typeof data?.error === 'string' ? data.error : 'WhatsApp gagal menerima pesan.')
+  }
+
+  return data as SendWhatsAppTextResult
+}
