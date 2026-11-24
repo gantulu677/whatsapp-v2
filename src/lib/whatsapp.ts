@@ -123,11 +123,18 @@ export async function fetchWhatsAppInbox(): Promise<{
     mediaByMessage.set(item.whatsapp_message_id, current)
   }
 
+  const displayPhoneByAccount = new Map<string, string>()
+  for (const item of messages) {
+    if (item.display_phone_number && !displayPhoneByAccount.has(item.account_id)) {
+      displayPhoneByAccount.set(item.account_id, item.display_phone_number)
+    }
+  }
+
   const accounts: WhatsAppAccount[] = settings.map((setting, index) => ({
     id: setting.id,
     name: setting.name,
     phoneNumberId: setting.phone_number_id,
-    phoneNumber: setting.phone_number_id,
+    phoneNumber: displayPhoneByAccount.get(setting.id) ?? setting.phone_number_id,
     isActive: setting.is_active,
     color: accountColors[index % accountColors.length],
   }))
@@ -154,8 +161,6 @@ export async function fetchWhatsAppInbox(): Promise<{
     })
     const latestMessage = contactMessages[contactMessages.length - 1]
     const latestAttachments = latestMessage ? mediaByMessage.get(latestMessage.id) ?? [] : []
-    const account = settings.find((item) => item.id === contact.account_id)
-
     return {
       id: contact.id,
       accountId: contact.account_id,
