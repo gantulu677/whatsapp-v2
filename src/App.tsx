@@ -50,8 +50,7 @@ function App() {
   const accountConversations = useMemo(
     () => conversations
       .filter((chat) => chat.accountId === activeAccountId)
-      .filter((chat) => `${chat.name} ${chat.phone} ${chat.lastMessage}`.toLowerCase().includes(search.toLowerCase()))
-      .sort((a, b) => b.lastMessageAt.localeCompare(a.lastMessageAt)),
+      .filter((chat) => `${chat.name} ${chat.phone} ${chat.lastMessage}`.toLowerCase().includes(search.toLowerCase())),
     [conversations, activeAccountId, search],
   )
   const activeChat = conversations.find(
