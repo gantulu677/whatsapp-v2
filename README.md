@@ -20,11 +20,8 @@ Frontend for a WhatsApp-style customer support inbox, built with React, Vite, Ty
 
 ```bash
 npm install
-cp .env.example .env
 npm run dev
 ```
-
-Fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in `.env` when you are ready to initialize the browser client. The project URL is prefilled; obtain the publishable key from the Supabase project's API Keys page.
 
 ## Validate
 
@@ -35,7 +32,7 @@ npm run build
 
 ## Supabase integration
 
-The frontend has a Supabase client bootstrap at `src/lib/supabase.ts`. It uses only the public publishable key and remains uninitialized when the environment variables are missing.
+The browser client is initialized in `src/lib/supabase.ts` using hardcoded project URL and publishable key. Both values are public client configuration; the publishable key is not a secret. Never place a Supabase secret/service-role key or WhatsApp/Meta credentials in frontend code.
 
 ### Current backend contract and safety boundary
 
@@ -44,23 +41,13 @@ The frontend has a Supabase client bootstrap at `src/lib/supabase.ts`. It uses o
 - Row Level Security is enabled on the WhatsApp tables. The frontend must not query these tables directly unless a deliberate, least-privilege client access policy is designed and reviewed.
 - `whatsapp-webhook` is a server-to-server Meta webhook. It must not be called by the browser.
 - `whatsapp-send-message` currently has JWT verification disabled. Do not invoke it from this public frontend until caller authentication/authorization and abuse controls have been reviewed.
-- There is currently no dedicated inbox/read Edge Function. The UI therefore continues to use clearly identified local mock data.
+- There is currently no dedicated inbox/read Edge Function. The UI therefore continues to use local mock data.
 - Message sending in the UI remains a local simulation. It does not send a real WhatsApp message.
-
-### GitHub Pages configuration
-
-For the Pages build, add these **repository Variables** in GitHub (Settings → Secrets and variables → Actions → Variables):
-
-| Variable | Value |
-| --- | --- |
-| `VITE_SUPABASE_URL` | `https://bkyqbbigfvfaobblxziu.supabase.co` |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key (`sb_publishable_...`) |
-
-The Pages workflow passes these public values to Vite at build time. They are not secrets. Do not create frontend variables for service-role keys or Meta/WhatsApp credentials.
 
 ## Security rules
 
-- Never expose `service_role` / secret keys or WhatsApp/Meta credentials in browser code, repository files, GitHub Variables, or any `VITE_*` variable.
+- The hardcoded publishable key is public by design; protect data with RLS and server-side authorization.
+- Never expose `service_role` / secret keys or WhatsApp/Meta credentials in browser code or repository files.
 - Do not bypass RLS by adding broad public policies just to make the UI work.
 - Keep webhook processing and WhatsApp Graph API calls server-side.
 - Keep the UI in demo mode until a secure inbox-read contract and authenticated send contract are available.
