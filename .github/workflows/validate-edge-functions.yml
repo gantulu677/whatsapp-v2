@@ -26,5 +26,7 @@ jobs:
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+      - name: Install npm dependencies
+        run: npm install --ignore-scripts
       - name: Type-check Edge Function
         run: deno check --no-lock supabase/functions/whatsapp-send-message/index.ts
