@@ -124,7 +124,7 @@ Deno.serve(async (req: Request) => {
     const hasInteractive = body.interactive !== undefined;
     const message = typeof body.message === "string" ? body.message.trim() : "";
     const interactiveValidation = hasInteractive ? validateInteractive(body.interactive) : null;
-  const replyButtonValidation = hasInteractive ? validateReplyButtonConstraints(body.interactive) : null;
+    const replyButtonValidation = hasInteractive ? validateReplyButtonConstraints(body.interactive) : null;
     if (!/^\d{5,30}$/.test(phoneNumberId)) {
       return jsonResponse({ error: "Invalid phone_number_id" }, 400);
     }
@@ -132,7 +132,7 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Invalid recipient number", details: "Use international format with country code, digits only (8-15 digits)." }, 400);
     }
     if (hasInteractive && !interactiveValidation?.ok) return jsonResponse({ error: interactiveValidation?.error ?? "Invalid interactive message" }, 400);
-    if (hasInteractive && !replyButtonValidation?.ok) return jsonResponse({ error: replyButtonValidation.error ?? "Invalid reply button message" }, 400);
+    if (hasInteractive && !replyButtonValidation?.ok) return jsonResponse({ error: replyButtonValidation?.error ?? "Invalid reply button message" }, 400);
     if (!hasInteractive && !message) return jsonResponse({ error: "Message must not be empty" }, 400);
     if (!hasInteractive && message.length > 4096) return jsonResponse({ error: "Message exceeds the 4096 character limit" }, 400);
     const messageSummary = hasInteractive ? (interactiveValidation?.summary ?? "") : message;
