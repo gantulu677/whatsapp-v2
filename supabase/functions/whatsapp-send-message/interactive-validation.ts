@@ -50,6 +50,7 @@ export function validateReplyButtonConstraints(value: unknown): ValidationResult
   }
 
   const titles = new Set<string>();
+  const ids = new Set<string>();
   for (const [index, button] of buttons.entries()) {
     if (!isRecord(button) || button.type !== "reply" || !isRecord(button.reply)) {
       return { ok: false, error: `Reply button ${index + 1} must use type=reply and include reply data` };
@@ -63,6 +64,13 @@ export function validateReplyButtonConstraints(value: unknown): ValidationResult
     if (characterLength(id) > 256) {
       return { ok: false, error: `Reply button ${index + 1} ID exceeds the 256 character limit` };
     }
+    if (id !== id.trim()) {
+      return { ok: false, error: `Reply button ${index + 1} ID must not have leading or trailing spaces` };
+    }
+    if (ids.has(id)) {
+      return { ok: false, error: "Reply button IDs must be unique" };
+    }
+    ids.add(id);
     if (typeof title !== "string" || !title.trim()) {
       return { ok: false, error: `Reply button ${index + 1} requires a non-empty title` };
     }
