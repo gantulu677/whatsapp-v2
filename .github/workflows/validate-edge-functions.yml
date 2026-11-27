@@ -1,0 +1,30 @@
+name: Validate WhatsApp Edge Functions
+
+on:
+  pull_request:
+    paths:
+      - "supabase/functions/**"
+      - ".github/workflows/validate-edge-functions.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "supabase/functions/**"
+      - ".github/workflows/validate-edge-functions.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-whatsapp-send-message:
+    name: Type-check whatsapp-send-message
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check Edge Function
+        run: deno check --no-lock supabase/functions/whatsapp-send-message/index.ts
